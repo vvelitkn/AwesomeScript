@@ -3,6 +3,23 @@ import os
 import sys
 import argparse
 import subprocess
+import urllib
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+from urllib.parse import urlsplit
+import re
+ext = set()
+def getExt(url):
+    o = urllib.parse.urlsplit(url)
+    html = urlopen(url)
+    bs = BeautifulSoup(html, 'html.parser')
+    for link in bs.find_all('a', href = re.compile('^((https://)|(http://))')):
+        if 'href' in link.attrs:
+            if o.netloc in (link.attrs['href']):
+                continue
+            else:
+                ext.add(link.attrs['href'])
+
 def print_current(ip, port):
     print ("Target IP: "+ip, end="")
     if (port != -1 ):
@@ -64,7 +81,12 @@ def fuzzdir(ip_data):
         print("Running command: gobuster dir -u http://" + ip_data+ temp + " -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -t 150")
         os.system("gobuster dir -u http://"+ ip_data+ temp +"/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -t 100 -q -n -e")
         
+def exturls():
+    ip_data = input("\nEnter target IP address: \n >> ")
 
+    getExt("http://"+ip_data+"/")
+    for i in ext:
+        print(i)
     
 def main():
     parser=argparse.ArgumentParser(
@@ -85,6 +107,8 @@ def main():
     elif(func == "b"):
         endecryption()
     
+    elif(func == "c"):
+        exturls()
     
 if __name__=="__main__":
     main()
